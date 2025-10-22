@@ -1,0 +1,365 @@
+local grid_generator = require("main.grid_generator")
+
+local WINDOW_WIDTH = 1280
+local WINDOW_HEIGHT = 720
+
+local COLOR_BORDER = vmath.vector4(0.5, 0.5, 0.5, 1)
+local COLOR_OBSTACLE = vmath.vector4(0.2, 0.6, 0.3, 1)
+local COLOR_PATH = vmath.vector4(1, 1, 0, 1)
+local COLOR_START = vmath.vector4(0.3, 1, 0.3, 1)
+local COLOR_END = vmath.vector4(1, 0.3, 0.3, 1)
+
+local function create_line_command(x1, y1, x2, y2, color)
+	return {
+		start_point = vmath.vector3(x1, y1, 0),
+		end_point = vmath.vector3(x2, y2, 0),
+		color = color
+	}
+end
+
+local function add_line_command(list, x1, y1, x2, y2, color)
+	list[#list + 1] = create_line_command(x1, y1, x2, y2, color)
+end
+
+local function add_cross_commands(list, center_x, center_y, half, color)
+	add_line_command(list, center_x - half, center_y, center_x + half, center_y, color)
+	add_line_command(list, center_x, center_y - half, center_x, center_y + half, color)
+end
+
+local function ensure_draw_tables(self)
+	self.draw_commands = self.draw_commands or {}
+	self.draw_commands.border = {}
+	self.draw_commands.obstacles = {}
+	self.draw_commands.path = {}
+	self.draw_commands.markers = {}
+end
+
+local function update_tile_metrics(self)
+	local grid_size = self.grid_size or 1
+	local tile_size = math.min(WINDOW_WIDTH / grid_size, WINDOW_HEIGHT / grid_size)
+
+	self.tile_size = tile_size
+	self.grid_pixel_width = tile_size * grid_size
+	self.grid_pixel_height = tile_size * grid_size
+	self.render_offset_x = (WINDOW_WIDTH - self.grid_pixel_width) / 2
+	self.render_offset_y = (WINDOW_HEIGHT - self.grid_pixel_height) / 2
+end
+
+local function refresh_marker_commands(self)
+	if not self.draw_commands then return end
+	if not self.tile_size then return end
+
+	local commands = {}
+	local tile_size = self.tile_size
+	local half = tile_size * 0.3
+	local offset_x = self.render_offset_x or 0
+	local offset_y = self.render_offset_y or 0
+
+	if self.start_point then
+		local cx = offset_x + (self.start_point.x - 1) * tile_size + tile_size / 2
+		local cy = offset_y + (self.start_point.y - 1) * tile_size + tile_size / 2
+		add_cross_commands(commands, cx, cy, half, COLOR_START)
+	end
+
+	if self.end_point then
+		local cx = offset_x + (self.end_point.x - 1) * tile_size + tile_size / 2
+		local cy = offset_y + (self.end_point.y - 1) * tile_size + tile_size / 2
+		add_cross_commands(commands, cx, cy, half, COLOR_END)
+	end
+
+	self.draw_commands.markers = commands
+end
+
+local function refresh_path_commands(self)
+	if not self.draw_commands then return end
+	if not self.tile_size then return end
+
+	local commands = {}
+	local tile_size = self.tile_size
+	local half = tile_size * 0.3
+	local offset_x = self.render_offset_x or 0
+	local offset_y = self.render_offset_y or 0
+
+	if self.path then
+		for _, point in ipairs(self.path) do
+			local is_start = self.start_point and point.x == self.start_point.x and point.y == self.start_point.y
+			local is_end = self.end_point and point.x == self.end_point.x and point.y == self.end_point.y
+			if not is_start and not is_end then
+				local cx = offset_x + (point.x - 1) * tile_size + tile_size / 2
+				local cy = offset_y + (point.y - 1) * tile_size + tile_size / 2
+				add_cross_commands(commands, cx, cy, half, COLOR_PATH)
+			end
+		end
+	end
+
+	self.draw_commands.path = commands
+end
+
+-- Convert grid to walls list for C++ extension
+local function grid_to_walls(grid, grid_size)
+    local walls = {}
+    for y = 1, grid_size do
+        for x = 1, grid_size do
+            if grid[y][x] == 1 then
+                table.insert(walls, {x, y})
+            end
+        end
+    end
+    return walls
+end
+
+function init(self)
+	msg.post(".", "acquire_input_focus")
+	msg.post("@render:", "use_fixed_fit_projection", { near = -1, far = 1 })
+
+	-- Generate the island grid
+	print("Generating island grid...")
+	self.grid, self.grid_size = grid_generator.create_island_grid()
+	print("Grid generated: " .. self.grid_size .. "x" .. self.grid_size)
+
+	-- Set start and end points (scaled for 288x288 grid)
+	self.start_point = {x = 22, y = 146}  -- 1-indexed (doubled from 11, 73)
+	self.end_point = {x = 270, y = 146}   -- 1-indexed (doubled from 135, 73)
+	self.path = {}
+
+	-- Convert grid to walls list for C++ extension
+	self.walls = grid_to_walls(self.grid, self.grid_size)
+	print("Walls extracted: " .. #self.walls .. " obstacles")
+
+	-- Create JPS grid instance
+	self.jps_grid = def_windward_jps.create_grid(self.grid_size, self.grid_size, self.walls)
+
+	ensure_draw_tables(self)
+	render_grid(self)
+
+	-- Show GUI
+	msg.post("/gui#gui", "show")
+end
+
+function render_grid(self)
+	-- Calculate offset to center the grid
+	update_tile_metrics(self)
+	ensure_draw_tables(self)
+
+	local tile_size = self.tile_size
+	local offset_x = self.render_offset_x
+	local offset_y = self.render_offset_y
+	local grid_pixel_width = self.grid_pixel_width
+	local grid_pixel_height = self.grid_pixel_height
+
+	-- Prepare border commands (single rectangle around grid)
+	add_line_command(self.draw_commands.border, offset_x, offset_y, offset_x + grid_pixel_width, offset_y, COLOR_BORDER)
+	add_line_command(self.draw_commands.border, offset_x + grid_pixel_width, offset_y, offset_x + grid_pixel_width, offset_y + grid_pixel_height, COLOR_BORDER)
+	add_line_command(self.draw_commands.border, offset_x + grid_pixel_width, offset_y + grid_pixel_height, offset_x, offset_y + grid_pixel_height, COLOR_BORDER)
+	add_line_command(self.draw_commands.border, offset_x, offset_y + grid_pixel_height, offset_x, offset_y, COLOR_BORDER)
+
+	-- Batch obstacles into horizontal runs for optimized rendering
+	local obstacles_cmds = self.draw_commands.obstacles
+	for y = 1, self.grid_size do
+		local start_x
+		local run_length = 0
+
+		for x = 1, self.grid_size do
+			local is_obstacle = self.grid[y][x] == 1
+
+			if is_obstacle then
+				if not start_x then
+					start_x = x
+					run_length = 1
+				else
+					run_length = run_length + 1
+				end
+			elseif start_x then
+				local left = offset_x + (start_x - 1) * tile_size
+				local right = offset_x + (start_x - 1 + run_length) * tile_size
+				local bottom = offset_y + (y - 1) * tile_size
+				local top = bottom + tile_size
+
+				add_line_command(obstacles_cmds, left, bottom, right, bottom, COLOR_OBSTACLE)
+				add_line_command(obstacles_cmds, right, bottom, right, top, COLOR_OBSTACLE)
+				add_line_command(obstacles_cmds, right, top, left, top, COLOR_OBSTACLE)
+				add_line_command(obstacles_cmds, left, top, left, bottom, COLOR_OBSTACLE)
+
+				start_x = nil
+				run_length = 0
+			end
+		end
+
+		if start_x then
+			local left = offset_x + (start_x - 1) * tile_size
+			local right = offset_x + (start_x - 1 + run_length) * tile_size
+			local bottom = offset_y + (y - 1) * tile_size
+			local top = bottom + tile_size
+
+			add_line_command(obstacles_cmds, left, bottom, right, bottom, COLOR_OBSTACLE)
+			add_line_command(obstacles_cmds, right, bottom, right, top, COLOR_OBSTACLE)
+			add_line_command(obstacles_cmds, right, top, left, top, COLOR_OBSTACLE)
+			add_line_command(obstacles_cmds, left, top, left, bottom, COLOR_OBSTACLE)
+		end
+	end
+
+	refresh_marker_commands(self)
+	refresh_path_commands(self)
+
+	print("Grid rendered with " .. (#self.draw_commands.obstacles / 4) .. " obstacle batches")
+end
+
+function find_path(self)
+	print("Finding path from (" .. self.start_point.x .. "," .. self.start_point.y .. ") to (" .. self.end_point.x .. "," .. self.end_point.y .. ")")
+
+	local start_time = socket.gettime()
+
+	-- Call C++ extension with 1-indexed coordinates
+	local start = {self.start_point.x, self.start_point.y}
+	local goal = {self.end_point.x, self.end_point.y}
+	
+	local path, err_msg = self.jps_grid:find_path(start, goal, "octile")
+	
+	local end_time = socket.gettime()
+	local elapsed_ms = (end_time - start_time) * 1000
+	
+	self.path = {}
+	if path then
+		for i, pos in ipairs(path) do
+			table.insert(self.path, {x = pos[1], y = pos[2]})
+		end
+	end
+	
+	if #self.path > 0 then
+		print("Path found! Length: " .. #self.path .. ", Time: " .. string.format("%.2f", elapsed_ms) .. "ms")
+		msg.post("/gui#gui", "update_result", {
+			path_length = #self.path,
+			time = elapsed_ms
+		})
+	else
+		print("No path found! Error: " .. (err_msg or "unknown"))
+		msg.post("/gui#gui", "update_result", {
+			path_length = 0,
+			time = elapsed_ms
+		})
+	end
+
+	refresh_path_commands(self)
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("find_path") then
+		find_path(self)
+	elseif message_id == hash("new_grid") then
+		generate_new_grid(self)
+	elseif message_id == hash("new_positions") then
+		generate_new_positions(self)
+	end
+end
+
+function on_input(self, action_id, action)
+	-- Input handling can be added here if needed
+end
+
+function update(self, dt)
+	if not self.draw_commands or not self.tile_size then return end
+
+	local render_url = "@render:"
+	local function emit_commands(commands)
+		for i = 1, #commands do
+			msg.post(render_url, "draw_line", commands[i])
+		end
+	end
+
+	emit_commands(self.draw_commands.border)
+	emit_commands(self.draw_commands.obstacles)
+	emit_commands(self.draw_commands.path)
+	emit_commands(self.draw_commands.markers)
+end
+
+function generate_new_grid(self)
+	print("Generating new grid...")
+	
+	-- Generate a new grid with a random seed
+	local new_seed = math.random(1, 10000)
+	self.grid, self.grid_size = grid_generator.create_island_grid(new_seed)
+	
+	-- Convert grid to walls list for C++ extension
+	self.walls = grid_to_walls(self.grid, self.grid_size)
+	print("New grid generated: " .. self.grid_size .. "x" .. self.grid_size)
+	print("Walls extracted: " .. #self.walls .. " obstacles")
+	
+	-- Send walls to native extension
+	self.jps_grid = def_windward_jps.create_grid(self.grid_size, self.grid_size, self.walls)
+	
+	-- Reset path
+	self.path = {}
+	
+	-- Re-render the grid
+	render_grid(self)
+	refresh_marker_commands(self)
+	refresh_path_commands(self)
+	
+	-- Update result text
+	msg.post("/gui#gui", "update_result", {
+		path_length = 0,
+		time = 0
+	})
+end
+
+function generate_new_positions(self)
+	print("Generating new start/end positions...")
+	
+	-- Find a random free position for start point
+	local start_found = false
+	local max_attempts = 1000
+	local attempts = 0
+	
+	while not start_found and attempts < max_attempts do
+		local x = math.random(1, self.grid_size)
+		local y = math.random(1, self.grid_size)
+		
+		-- Check if position is free (walkable)
+		if self.grid[y][x] == 0 then
+			self.start_point = {x = x, y = y}
+			start_found = true
+		end
+		
+		attempts = attempts + 1
+	end
+	
+	-- Find a random free position for end point (different from start)
+	local end_found = false
+	attempts = 0
+	
+	while not end_found and attempts < max_attempts do
+		local x = math.random(1, self.grid_size)
+		local y = math.random(1, self.grid_size)
+		
+		-- Check if position is free (walkable) and not the same as start
+		if self.grid[y][x] == 0 and (x ~= self.start_point.x or y ~= self.start_point.y) then
+			self.end_point = {x = x, y = y}
+			end_found = true
+		end
+		
+		attempts = attempts + 1
+	end
+	
+	if start_found and end_found then
+		print("New positions generated: Start(" .. self.start_point.x .. "," .. self.start_point.y .. ") End(" .. self.end_point.x .. "," .. self.end_point.y .. ")")
+	else
+		print("Failed to find suitable positions for start/end points")
+	end
+	
+	-- Reset path
+	self.path = {}
+	refresh_marker_commands(self)
+	refresh_path_commands(self)
+
+	-- Update result text
+	msg.post("/gui#gui", "update_result", {
+		path_length = 0,
+		time = 0
+	})
+end
+
+function on_reload(self)
+	-- Add your code here
+	-- Learn more: https://defold.com/manuals/hot-reload/
+	-- Remove this function if not needed
+end

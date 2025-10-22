@@ -1,0 +1,88 @@
+function init(self)
+	self.button_bg = gui.get_node("button_bg")
+	self.button_text = gui.get_node("button_text")
+	self.result_text = gui.get_node("result_text")
+	self.new_grid_button_bg = gui.get_node("new_grid_button_bg")
+	self.new_grid_button_text = gui.get_node("new_grid_button_text")
+	self.new_positions_button_bg = gui.get_node("new_positions_button_bg")
+	self.new_positions_button_text = gui.get_node("new_positions_button_text")
+	
+	-- Acquire input focus to receive input events
+	msg.post(".", "acquire_input_focus")
+
+	-- Initially hide until told to show
+	gui.set_enabled(self.button_bg, true)
+	gui.set_enabled(self.button_text, true)
+	gui.set_enabled(self.result_text, true)
+	gui.set_enabled(self.new_grid_button_bg, true)
+	gui.set_enabled(self.new_grid_button_text, true)
+	gui.set_enabled(self.new_positions_button_bg, true)
+	gui.set_enabled(self.new_positions_button_text, true)
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("show") then
+		gui.set_enabled(self.button_bg, true)
+		gui.set_enabled(self.button_text, true)
+		gui.set_enabled(self.result_text, true)
+	elseif message_id == hash("update_result") then
+		if message.path_length > 0 then
+			local result_str = string.format("Path: %d nodes, Time: %.2fms", message.path_length, message.time)
+			gui.set_text(self.result_text, result_str)
+		else
+			gui.set_text(self.result_text, "No path found!")
+		end
+	end
+end
+
+function on_input(self, action_id, action)
+	if action_id == hash("touch") and action.pressed then
+		-- Check if Find Path button was clicked
+		local button_pos = gui.get_position(self.button_bg)
+		local button_size = gui.get_size(self.button_bg)
+		
+		local min_x = button_pos.x - button_size.x / 2
+		local max_x = button_pos.x + button_size.x / 2
+		local min_y = button_pos.y - button_size.y / 2
+		local max_y = button_pos.y + button_size.y / 2
+		
+		if action.x >= min_x and action.x <= max_x and 
+		   action.y >= min_y and action.y <= max_y then
+			-- Find Path button clicked!
+			print("Find Path button clicked!")
+			msg.post("/go#main", "find_path")
+		end
+		
+		-- Check if New Grid button was clicked
+		local new_grid_button_pos = gui.get_position(self.new_grid_button_bg)
+		local new_grid_button_size = gui.get_size(self.new_grid_button_bg)
+		
+		local new_grid_min_x = new_grid_button_pos.x - new_grid_button_size.x / 2
+		local new_grid_max_x = new_grid_button_pos.x + new_grid_button_size.x / 2
+		local new_grid_min_y = new_grid_button_pos.y - new_grid_button_size.y / 2
+		local new_grid_max_y = new_grid_button_pos.y + new_grid_button_size.y / 2
+		
+		if action.x >= new_grid_min_x and action.x <= new_grid_max_x and 
+		   action.y >= new_grid_min_y and action.y <= new_grid_max_y then
+			-- New Grid button clicked!
+			print("New Grid button clicked!")
+			msg.post("/go#main", "new_grid")
+		end
+		
+		-- Check if New Positions button was clicked
+		local new_positions_button_pos = gui.get_position(self.new_positions_button_bg)
+		local new_positions_button_size = gui.get_size(self.new_positions_button_bg)
+		
+		local new_positions_min_x = new_positions_button_pos.x - new_positions_button_size.x / 2
+		local new_positions_max_x = new_positions_button_pos.x + new_positions_button_size.x / 2
+		local new_positions_min_y = new_positions_button_pos.y - new_positions_button_size.y / 2
+		local new_positions_max_y = new_positions_button_pos.y + new_positions_button_size.y / 2
+		
+		if action.x >= new_positions_min_x and action.x <= new_positions_max_x and 
+		   action.y >= new_positions_min_y and action.y <= new_positions_max_y then
+			-- New Positions button clicked!
+			print("New Positions button clicked!")
+			msg.post("/go#main", "new_positions")
+		end
+	end
+end

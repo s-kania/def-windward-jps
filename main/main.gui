@@ -1,0 +1,131 @@
+script: "/main/main.gui_script"
+fonts {
+  name: "system_font"
+  font: "/builtins/fonts/default.font"
+}
+nodes {
+  position {
+    x: 120.0
+    y: 566.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  color {
+    x: 0.2
+    y: 0.6
+  }
+  type: TYPE_BOX
+  id: "button_bg"
+  inherit_alpha: true
+  size_mode: SIZE_MODE_AUTO
+}
+nodes {
+  scale {
+    x: 1.5
+    y: 1.5
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Find Path"
+  font: "system_font"
+  id: "button_text"
+  parent: "button_bg"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 23.0
+    y: 55.0
+  }
+  scale {
+    x: 2.0
+    y: 2.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Result: ---"
+  font: "system_font"
+  id: "result_text"
+  pivot: PIVOT_W
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 120.0
+    y: 437.0
+  }
+  size {
+    x: 150.0
+    y: 75.0
+  }
+  color {
+    x: 0.8
+    y: 0.4
+    z: 0.2
+  }
+  type: TYPE_BOX
+  id: "new_grid_button_bg"
+  inherit_alpha: true
+  size_mode: SIZE_MODE_AUTO
+}
+nodes {
+  scale {
+    x: 1.2
+    y: 1.2
+  }
+  size {
+    x: 150.0
+    y: 75.0
+  }
+  type: TYPE_TEXT
+  text: "New Grid"
+  font: "system_font"
+  id: "new_grid_button_text"
+  parent: "new_grid_button_bg"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 120.0
+    y: 317.0
+  }
+  size {
+    x: 150.0
+    y: 75.0
+  }
+  color {
+    x: 0.2
+    y: 0.8
+    z: 0.6
+  }
+  type: TYPE_BOX
+  id: "new_positions_button_bg"
+  inherit_alpha: true
+  size_mode: SIZE_MODE_AUTO
+}
+nodes {
+  scale {
+    x: 1.2
+    y: 1.2
+  }
+  size {
+    x: 150.0
+    y: 75.0
+  }
+  type: TYPE_TEXT
+  text: "New Positions"
+  font: "system_font"
+  id: "new_positions_button_text"
+  parent: "new_positions_button_bg"
+  inherit_alpha: true
+}
+material: "/builtins/materials/gui.material"
+adjust_reference: ADJUST_REFERENCE_PARENT

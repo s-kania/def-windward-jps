@@ -1,0 +1,50 @@
+name: Build Extension
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    name: Build for ${{ matrix.platform }}
+    runs-on: ${{ matrix.os }}
+    
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: x86_64-linux
+          - os: macos-latest
+            platform: x86_64-macos
+          - os: macos-latest
+            platform: arm64-macos
+          - os: windows-latest
+            platform: x86_64-win32
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Setup Java
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+    
+    - name: Download bob.jar
+      run: |
+        curl -L -o bob.jar https://github.com/defold/defold/releases/download/1.6.4/bob.jar
+    
+    - name: Resolve dependencies
+      run: java -jar bob.jar resolve
+    
+    - name: Build extension
+      run: java -jar bob.jar --platform ${{ matrix.platform }} build
+    
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: build-${{ matrix.platform }}
+        path: build/

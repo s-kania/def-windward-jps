@@ -1,0 +1,7 @@
+# JPS Pathfinding Extension for Defold
+name: "DefWindwardJps"
+
+platforms:
+    common:
+        context:
+            flags: ["-std=c++98"]
