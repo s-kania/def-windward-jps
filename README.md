@@ -8,7 +8,8 @@ Native Defold extension implementing the Jump Point Search (JPS) algorithm for f
 - stores grid state in native memory,
 - supports 8-direction movement (with the octile heuristic),
 - allows choosing heuristics (`octile`, `manhattan`, `euclidean`),
-- returns a path as an array of points ready for Lua usage.
+- returns a path as an array of points ready for Lua usage,
+- native code compiled with the C++98 standard for full Defold compatibility.
 
 ## Installation
 
@@ -41,45 +42,29 @@ Returns two values: the path as an array `{ {x1, y1}, ... }` and `nil` as the er
 
 This method operates on a specific grid instance returned by `create_grid`.
 
-## Example usage in a script
+## Quick example
 
-The following snippet demonstrates the complete flow: converting a Defold grid to the required structure, initializing walls, and requesting a path. It is based on the demo scene available in the `main/` directory.
+Once the extension is added as a dependency, Defold exposes it under the global `def_windward_jps` namespace – no `require` call needed. A minimal usage example:
 
 ```lua
-local grid_generator = require("main.grid_generator")
-local jps = require("def_windward_jps.def_windward_jps")
+local walls = {
+    {10, 12},
+    {11, 12},
+    {12, 12},
+}
 
-local function grid_to_walls(grid, grid_size)
-    local walls = {}
-    for y = 1, grid_size do
-        for x = 1, grid_size do
-            if grid[y][x] == 1 then
-                table.insert(walls, {x, y})
-            end
-        end
-    end
-    return walls
-end
+local grid = def_windward_jps.create_grid(64, 64, walls)
 
-function init(self)
-    self.grid, self.grid_size = grid_generator.create_island_grid()
-    self.walls = grid_to_walls(self.grid, self.grid_size)
+local start = {8, 8}
+local goal = {40, 40}
 
-    self.jps_grid = jps.create_grid(self.grid_size, self.grid_size, self.walls)
-
-    local start = {22, 146}
-    local goal = {270, 146}
-
-    local path, err = self.jps_grid:find_path(start, goal, "octile")
-    if path then
-        for _, point in ipairs(path) do
-            -- process the result (e.g., visualization)
-        end
-    else
-        pprint(err)
-    end
+local path, err = grid:find_path(start, goal, "octile")
+if not path then
+    pprint(err)
 end
 ```
+
+For a full end-to-end example (grid generation, rendering, GUI), see the demo scene in the `main/` directory.
 
 ## Troubleshooting
 
