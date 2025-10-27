@@ -104,6 +104,8 @@ end
 
 The repository ships with a demo scene (`main/`) that generates a random island, sets up the grid, and visualizes the computed path. You can run the project without extra configuration to see the extension in action.
 
+For the default grid size of 288x288, pathfinding typically takes approximately 1ms on modern hardware.
+
 ## License
 
 The project is released under the MIT license (see `LICENSE.md`).
