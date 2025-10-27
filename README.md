@@ -12,7 +12,7 @@ Native Defold extension implementing the Jump Point Search (JPS) algorithm for f
 
 ## Installation
 
-### 1. Add as dependency (recommended)
+### Add as dependency
 
 In your `game.project`, add the repository as a dependency – you can point to a branch, tag, or release zip:
 
@@ -22,20 +22,6 @@ dependencies = https://github.com/kanias/def-jps/archive/refs/heads/main.zip
 ```
 
 If you use your own fork or specific version, replace the URL with the proper Defold-compatible link.
-
-### 2. Manual installation
-
-1. Clone the repository or download the `.zip` archive.
-2. Copy the `def_windward_jps` directory into your Defold project.
-3. Ensure the folder resides within Defold’s script search paths (for example, in the project root).
-
-## Project setup
-
-The extension registers a Lua module named `def_windward_jps`. You can explicitly require it:
-
-```lua
-local jps = require("def_windward_jps.def_windward_jps")
-```
 
 ## API
 
