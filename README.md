@@ -1,4 +1,4 @@
-# def-windward-jps – Jump Point Search extension for Defold
+# def_windward_jps – Jump Point Search extension for Defold
 
 Native Defold extension implementing the Jump Point Search (JPS) algorithm for fast pathfinding on 2D grids. The code is based on the [hvillanua/jps](https://github.com/hvillanua/jps/) implementation and exposes a straightforward Lua API for configuring obstacles and requesting paths.
 
@@ -25,7 +25,7 @@ If you use your own fork or specific version, replace the URL with the proper De
 ### 2. Manual installation
 
 1. Clone the repository or download the `.zip` archive.
-2. Copy the `def-windward-jps` directory into your Defold project.
+2. Copy the `def_windward_jps` directory into your Defold project.
 3. Ensure the folder resides within Defold’s script search paths (for example, in the project root).
 
 ## Project setup
@@ -33,7 +33,7 @@ If you use your own fork or specific version, replace the URL with the proper De
 The extension registers a Lua module named `def_windward_jps`. You can explicitly require it:
 
 ```lua
-local jps = require("def-windward-jps.def_windward_jps")
+local jps = require("def_windward_jps.def_windward_jps")
 ```
 
 ## API
@@ -60,7 +60,7 @@ The following snippet demonstrates the complete flow: converting a Defold grid t
 
 ```lua
 local grid_generator = require("main.grid_generator")
-local jps = require("def-windward-jps.def_windward_jps")
+local jps = require("def_windward_jps.def_windward_jps")
 
 local function grid_to_walls(grid, grid_size)
     local walls = {}

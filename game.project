@@ -12,7 +12,7 @@ height = 640
 title = def-jps
 
 [library]
-include_dirs = def-windward-jps
+include_dirs = def_windward_jps
 
 [graphics]
 max_debug_vertices = 100000
