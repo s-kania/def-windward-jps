@@ -105,6 +105,8 @@ end
 The repository ships with a demo scene (`main/`) that generates a random island, sets up the grid, and visualizes the computed path. You can run the project without extra configuration to see the extension in action.
 
 For the default grid size of 288x288, pathfinding typically takes approximately 1ms on modern hardware.
+<img width="958" height="603" alt="Screenshot 2025-10-27 at 12 00 28" src="https://github.com/user-attachments/assets/1044283f-227b-4711-8e92-06536a603a48" />
+
 
 ## License
 
