@@ -1,5 +1,5 @@
+<img width="350" height="350" alt="def-windward-jps-logo" src="https://github.com/user-attachments/assets/5aa1830f-964c-4e9d-8ce7-2aad38aeda45" />
 
-<img width="350" height="350" alt="def-windward-jps" src="https://github.com/user-attachments/assets/71aa5676-040d-4855-a879-a2fb04a67fd3" />
 
 Native Defold extension implementing the Jump Point Search (JPS) algorithm for fast pathfinding on 2D grids. The code is based on the [hvillanua/jps](https://github.com/hvillanua/jps/) implementation and exposes a straightforward Lua API for configuring obstacles and requesting paths.
 
