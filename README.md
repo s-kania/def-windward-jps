@@ -19,7 +19,7 @@ In your `game.project`, add the repository as a dependency – you can point to 
 
 ```
 [project]
-dependencies = https://github.com/kanias/def-jps/archive/refs/heads/main.zip
+dependencies = https://github.com/s-kania/def-windward-jps/archive/refs/tags/v1.0.0.zip
 ```
 
 If you use your own fork or specific version, replace the URL with the proper Defold-compatible link.
