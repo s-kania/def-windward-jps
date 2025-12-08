@@ -42,6 +42,12 @@ Returns two values: the path as an array `{ {x1, y1}, ... }` and `nil` as the er
 
 This method operates on a specific grid instance returned by `create_grid`.
 
+### `grid:is_walkable(point)`
+
+- `point` – table `{x, y}`.
+
+Returns `true` if the point is within grid bounds and not blocked, `false` otherwise. Useful for checking if a specific tile can be traversed before attempting pathfinding.
+
 ## Quick example
 
 Once the extension is added as a dependency, Defold exposes it under the global `def_windward_jps` namespace – no `require` call needed. A minimal usage example:
@@ -62,6 +68,10 @@ local path, err = grid:find_path(start, goal, "octile")
 if not path then
     pprint(err)
 end
+
+-- Check if a specific point is walkable
+local walkable = grid:is_walkable({15, 15})
+print("Point {15, 15} is walkable:", walkable)
 ```
 
 For a full end-to-end example (grid generation, rendering, GUI), see the demo scene in the `main/` directory.

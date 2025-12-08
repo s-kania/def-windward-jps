@@ -184,6 +184,30 @@ static int FindPath(lua_State* L)
     return 2;
 }
 
+// Check if a point is walkable (not blocked)
+// Parameters: self (Grid userdata), point_table
+// Returns: boolean
+static int IsWalkable(lua_State* L)
+{
+    DM_LUA_STACK_CHECK(L, 1);
+
+    GridWrapper* wrapper = CheckGridWrapper(L, 1);
+    
+    if(!wrapper->initialized) {
+        lua_pushboolean(L, 0);
+        return 1;
+    }
+
+    luaL_checktype(L, 2, LUA_TTABLE);
+    Location point = ReadLocation(L, 2);
+
+    Grid& grid = wrapper->grid;
+    bool walkable = grid.passable(point);
+    
+    lua_pushboolean(L, walkable ? 1 : 0);
+    return 1;
+}
+
 // Garbage collection for GridWrapper
 static int GridGC(lua_State* L)
 {
@@ -206,6 +230,7 @@ static const luaL_reg Module_methods[] =
 static const luaL_reg Grid_methods[] =
 {
     {"find_path", FindPath},
+    {"is_walkable", IsWalkable},
     {"__gc", GridGC},
     {0, 0}
 };
