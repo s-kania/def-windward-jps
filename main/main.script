@@ -45,6 +45,32 @@ local function update_tile_metrics(self)
 	self.render_offset_y = (WINDOW_HEIGHT - self.grid_pixel_height) / 2
 end
 
+local function screen_to_grid(self, screen_x, screen_y)
+	if not self.tile_size or not self.grid_size then
+		return nil
+	end
+
+	local offset_x = self.render_offset_x or 0
+	local offset_y = self.render_offset_y or 0
+	local grid_width = self.grid_pixel_width or 0
+	local grid_height = self.grid_pixel_height or 0
+
+	local inside_x = screen_x >= offset_x and screen_x <= offset_x + grid_width
+	local inside_y = screen_y >= offset_y and screen_y <= offset_y + grid_height
+	if not (inside_x and inside_y) then
+		return nil
+	end
+
+	local tile_x = math.floor((screen_x - offset_x) / self.tile_size) + 1
+	local tile_y = math.floor((screen_y - offset_y) / self.tile_size) + 1
+
+	if tile_x < 1 or tile_x > self.grid_size or tile_y < 1 or tile_y > self.grid_size then
+		return nil
+	end
+
+	return tile_x, tile_y
+end
+
 local function refresh_marker_commands(self)
 	if not self.draw_commands then return end
 	if not self.tile_size then return end
@@ -253,7 +279,14 @@ function on_message(self, message_id, message, sender)
 end
 
 function on_input(self, action_id, action)
-	-- Input handling can be added here if needed
+	if action_id == hash("touch") and action.pressed then
+		local grid_x, grid_y = screen_to_grid(self, action.x, action.y)
+		if grid_x and grid_y and self.jps_grid then
+			local walkable = self.jps_grid:is_walkable({grid_x, grid_y})
+			local status = walkable and "walkable" or "blocked"
+			print(string.format("Tile (%d,%d) is %s", grid_x, grid_y, status))
+		end
+	end
 end
 
 function update(self, dt)
