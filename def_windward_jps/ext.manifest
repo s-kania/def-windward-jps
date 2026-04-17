@@ -4,4 +4,4 @@ name: "DefWindwardJps"
 platforms:
     common:
         context:
-            flags: ["-std=c++98"]
+            flags: ["-std=c++11"]

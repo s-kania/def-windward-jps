@@ -9,7 +9,7 @@ Native Defold extension implementing the Jump Point Search (JPS) algorithm for f
 - supports 8-direction movement (with the octile heuristic),
 - allows choosing heuristics (`octile`, `manhattan`, `euclidean`),
 - returns a path as an array of points ready for Lua usage,
-- native code compiled with the C++98 standard for full Defold compatibility.
+- native code compiled with the C++11 standard for full compatibility with the current Defold SDK across all supported platforms.
 
 ## Installation
 
