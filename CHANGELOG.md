@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Build failures on Windows with Defold SDK 1.11.2+ caused by the Windows system headers (`minwindef.h`, `malloc.h`) requiring `constexpr` and `noexcept`, which are unavailable under `-std=c++98`. The extension now compiles with `-std=c++11`. Existing extension source code is unchanged and remains compatible. ([#2](https://github.com/s-kania/def-windward-jps/issues/2))
+- Build failures on Windows with Defold SDK 1.11.2+ caused by forcing `-std=c++98`, while the Windows system headers (`minwindef.h`, `malloc.h`) require `constexpr` and `noexcept`. The extension no longer overrides the C++ standard and now uses the platform defaults provided by the Defold toolchain. Existing extension source code is unchanged. ([#2](https://github.com/s-kania/def-windward-jps/issues/2))
 
 ## [1.1.0] - 2025-12-08
 
