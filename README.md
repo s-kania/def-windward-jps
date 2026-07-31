@@ -9,7 +9,7 @@ Native Defold extension implementing the Jump Point Search (JPS) algorithm for f
 - supports 8-direction movement (with the octile heuristic),
 - allows choosing heuristics (`octile`, `manhattan`, `euclidean`),
 - returns a path as an array of points ready for Lua usage,
-- native code compiled with the C++11 standard for full compatibility with the current Defold SDK across all supported platforms.
+- builds with the C++ standard selected by the Defold toolchain for each supported platform.
 
 ## Installation
 
@@ -19,7 +19,7 @@ In your `game.project`, add the repository as a dependency – you can point to 
 
 ```
 [project]
-dependencies = https://github.com/s-kania/def-windward-jps/archive/refs/tags/v1.0.0.zip
+dependencies = https://github.com/s-kania/def-windward-jps/archive/refs/tags/v1.1.1.zip
 ```
 
 If you use your own fork or specific version, replace the URL with the proper Defold-compatible link.
